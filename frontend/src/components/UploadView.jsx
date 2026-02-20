@@ -178,15 +178,6 @@ export default function UploadView({ onAnalyze }) {
             >
                 Analisar Música
             </Button>
-
-            <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onAnalyze({ file: { name: "Bohemian Rhapsody.mp3", size: 5000000, type: "audio/mpeg" }, language: selectedLanguage })}
-                className="text-xs text-muted-foreground hover:text-foreground"
-            >
-                Simulate Demo Analysis
-            </Button>
         </div>
     )
 }
