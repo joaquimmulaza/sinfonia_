@@ -1,0 +1,38 @@
+# Ambiente Virtual Python
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Node e frontend
+node_modules/
+dist/
+dist-ssr/
+build/
+*.local
+
+# Variáveis de ambiente
+.env
+.env.*
+!.env.example
+
+# Arquivos de Sistema
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editores / IDEs
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
