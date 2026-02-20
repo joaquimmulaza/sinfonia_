@@ -1,10 +1,26 @@
-import React from 'react'
-import { motion } from 'framer-motion'
+import React, { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+
+const loadingMessages = [
+    "A fazer upload da faixa...",
+    "A isolar os vocais e instrumentos...",
+    "A traduzir as letras e gírias...",
+    "A analisar a vibe e o significado..."
+];
 
 export default function LoadingState() {
+    const [messageIndex, setMessageIndex] = useState(0)
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setMessageIndex((prev) => (prev + 1) % loadingMessages.length)
+        }, 2500) // Change message every 2.5 seconds
+        return () => clearInterval(interval)
+    }, [])
+
     return (
         <div className="flex flex-col items-center justify-center h-full space-y-8 p-12">
-            <div className="relative flex items-center justify-center h-32 w-full max-w-md">
+            <div className="relative flex items-center justify-center h-32 w-full max-w-md mt-8">
                 {/* Pulsating waves */}
                 {[...Array(5)].map((_, i) => (
                     <motion.div
@@ -38,15 +54,23 @@ export default function LoadingState() {
                 </motion.div>
             </div>
 
-            <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-                className="text-center space-y-2"
-            >
-                <h3 className="text-2xl font-bold">Analysing Audio Frequency...</h3>
-                <p className="text-muted-foreground animate-pulse">Extracting lyrics and emotions</p>
-            </motion.div>
+            <div className="w-full max-w-lg relative flex items-center justify-center min-h-[100px]">
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={messageIndex}
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -15 }}
+                        transition={{ duration: 0.5, ease: "easeInOut" }}
+                        className="text-center space-y-2 w-full px-6"
+                    >
+                        <h3 className="text-xl md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary/80 to-primary leading-tight">
+                            {loadingMessages[messageIndex]}
+                        </h3>
+                        <p className="text-muted-foreground text-sm md:text-base animate-pulse">Sinfonia AI is processing...</p>
+                    </motion.div>
+                </AnimatePresence>
+            </div>
         </div>
     )
 }

@@ -18,6 +18,7 @@ client = genai.Client(api_key=GEMINI_API_KEY)
 MODEL_ID = "gemini-3-flash-preview"
 
 def analyze_audio(file_path: str, target_language: str) -> AnalysisResponse:
+    file_ref = None
     try:
         # 1. Upload file using File API
         print(f"Uploading file: {file_path}")
@@ -67,3 +68,12 @@ def analyze_audio(file_path: str, target_language: str) -> AnalysisResponse:
     except Exception as e:
         print(f"Error in Gemini Service: {e}")
         raise e
+        
+    finally:
+        # CRITICAL FIX: Delete the file from the Gemini API after use
+        if file_ref:
+            try:
+                client.files.delete(name=file_ref.name)
+                print(f"File {file_ref.name} deleted from Gemini API.")
+            except Exception as delete_error:
+                print(f"Failed to delete file from Gemini API: {delete_error}")
