@@ -1,28 +1,12 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react'
 import AudioPlayer from './AudioPlayer'
 import ResultsView from './ResultsView'
+import { parseTime } from '@/lib/utils'
 
 export default function KaraokeSession({ data, audioFile }) {
     const [currentTime, setCurrentTime] = useState(0)
     const [audioSrc, setAudioSrc] = useState(null)
 
-    // Memoize timings parsing
-    // Robust time parser: handles MM:SS, H:MM:SS, etc.
-    const parseTime = (timeStr) => {
-        if (!timeStr) return 0
-        const parts = timeStr.trim().split(':').map(Number)
-        // Reverse parts to handle [SS, MM, HH] logic easily
-        // 0:45 -> [0, 45] -> 0*60 + 45
-        // 1:20:30 -> [1, 20, 30] -> 1*3600 + 20*60 + 30
-
-        let seconds = 0
-        if (parts.length === 2) {
-            seconds = parts[0] * 60 + parts[1]
-        } else if (parts.length === 3) {
-            seconds = parts[0] * 3600 + parts[1] * 60 + parts[2]
-        }
-        return seconds
-    }
 
     // Create object URL for audio
     useEffect(() => {
@@ -33,25 +17,23 @@ export default function KaraokeSession({ data, audioFile }) {
         }
     }, [audioFile])
 
-    const lineTimings = useMemo(() => {
-        if (!data || !data.lyrics) return []
-        return data.lyrics.map(line => parseTime(line.time))
-    }, [data])
-
-
     // Optimization: Calculate active index efficiently
-    // We want the last index where timing <= currentTime
+    // We want the line where the first word has started, or fallback to line timing
     const activeLineIndex = useMemo(() => {
-        let index = -1
-        for (let i = 0; i < lineTimings.length; i++) {
-            if (currentTime >= lineTimings[i]) {
-                index = i
-            } else {
-                break
+        if (!data?.lyrics) return -1
+        for (let i = data.lyrics.length - 1; i >= 0; i--) {
+            const line = data.lyrics[i]
+            const firstWord = line.words?.[0]
+            if (firstWord && currentTime >= parseTime(firstWord.start_time)) {
+                return i
+            }
+            // fallback para linhas sem words
+            if (!firstWord && currentTime >= parseTime(line.time)) {
+                return i
             }
         }
-        return index
-    }, [currentTime, lineTimings])
+        return -1
+    }, [currentTime, data])
 
 
     const handleTimeUpdate = (time) => {

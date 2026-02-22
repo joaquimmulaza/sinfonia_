@@ -35,7 +35,9 @@ def analyze_audio(file_path: str, target_language: str) -> AnalysisResponse:
         1. **Listen**: Identify the "vibe", the predominant emotions, the rhythmic pace, and prominent instrumentation. 
         2. **Transcribe**: Extract the exact original lyrics of the song synchronized with the audio timeline. 
            CRITICAL: For every line, provide the overall line `time` AND a detailed list of `words` with exact `start_time` and `end_time` for word-level karaoke synchronization (e.g. "0:15.2" to "0:15.8").
-        3. **Translate**: Translate the lyrics into {target_language}. Also provide the translated line string `text` and the start `time`. (Word-level timestamps for translations are optional but great if possible).
+           CRITICAL for timestamps: The `start_time` of each word must match the EXACT moment that word begins to be sung in the audio, not the musical beat before it.
+           Timestamps must be in format "M:SS.d" (e.g. "1:23.4").
+        3. **Translate**: Translate the lyrics into {target_language}. Also provide the translated line string `text` and the start `time`. Words in `translation` lines should reuse the same start_time as the corresponding original word when possible.
         4. **Analyze**: detailed meaning, metaphors, and the emotional connection between the music and the lyrics.
 
         Provide the output strictly as a JSON object matching the requested schema. Pay meticulous attention to timestamps.

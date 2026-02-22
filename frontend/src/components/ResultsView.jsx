@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { parseTime } from '@/lib/utils'
 
 // I'll stick to standard div with overflow for scroll area to avoid missing components, or implement a simple one.
 // The prompt asked for "Button, Card, Skeleton, Select". It didn't ask for ScrollArea or Tabs explicitly, but "painel sincronizado... ou em aba".
@@ -9,23 +10,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 export default function ResultsView({ data, activeLineIndex = -1, currentTime = 0 }) {
     const { lyrics, translation, meaning } = data
 
+    // Log timestamps structure for debugging purposes
+    useEffect(() => {
+        if (lyrics && lyrics.length > 0) {
+            console.log("Gemini parsed time format:", lyrics[0]?.time);
+            console.log("Gemini word start_time format:", lyrics[0]?.words?.[0]?.start_time);
+        }
+    }, [lyrics])
+
     // Refs for scrolling
     const originalRefs = useRef([])
     const translationRefs = useRef([])
 
-    const parseTime = (timeStr) => {
-        if (!timeStr) return 0
-        const parts = String(timeStr).trim().split(':').map(Number)
-        let seconds = 0
-        if (parts.length === 2) {
-            seconds = parts[0] * 60 + parts[1]
-        } else if (parts.length === 3) {
-            seconds = parts[0] * 3600 + parts[1] * 60 + parts[2]
-        } else if (parts.length === 1) {
-            seconds = parts[0] // fallback if it's just seconds
-        }
-        return seconds
-    }
+
 
     useEffect(() => {
         if (activeLineIndex >= 0) {
@@ -118,8 +115,8 @@ export default function ResultsView({ data, activeLineIndex = -1, currentTime = 
                                                     <span
                                                         key={wIdx}
                                                         className={`transition-colors duration-150 ${isCurrentWord ? 'text-primary font-bold scale-110 inline-block drop-shadow-md'
-                                                                : isSung ? 'text-primary'
-                                                                    : 'text-muted-foreground'
+                                                            : isSung ? 'text-primary'
+                                                                : 'text-muted-foreground'
                                                             }`}
                                                     >
                                                         {w.word}
