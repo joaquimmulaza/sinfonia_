@@ -3,8 +3,8 @@ const API_URL = "http://localhost:8000/api/analyze";
 export const analyzeMusic = async ({ file, language }) => {
     const formData = new FormData();
     formData.append("file", file);
-    // Extract the language ID (e.g., 'en', 'pt') from the language object
-    formData.append("target_language", language.id || language);
+    // Extract the language name (e.g., 'English', 'Portuguese') from the language object
+    formData.append("target_language", language.name || language);
 
     try {
         const response = await fetch(API_URL, {
