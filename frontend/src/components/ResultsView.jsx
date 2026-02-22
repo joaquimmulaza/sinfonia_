@@ -6,12 +6,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 // The prompt asked for "Button, Card, Skeleton, Select". It didn't ask for ScrollArea or Tabs explicitly, but "painel sincronizado... ou em aba".
 // I'll implement a simple tab system or just use side-by-side.
 
-export default function ResultsView({ data, activeLineIndex = -1 }) {
+export default function ResultsView({ data, activeLineIndex = -1, currentTime = 0 }) {
     const { lyrics, translation, meaning } = data
 
     // Refs for scrolling
     const originalRefs = useRef([])
     const translationRefs = useRef([])
+
+    const parseTime = (timeStr) => {
+        if (!timeStr) return 0
+        const parts = String(timeStr).trim().split(':').map(Number)
+        let seconds = 0
+        if (parts.length === 2) {
+            seconds = parts[0] * 60 + parts[1]
+        } else if (parts.length === 3) {
+            seconds = parts[0] * 3600 + parts[1] * 60 + parts[2]
+        } else if (parts.length === 1) {
+            seconds = parts[0] // fallback if it's just seconds
+        }
+        return seconds
+    }
 
     useEffect(() => {
         if (activeLineIndex >= 0) {
@@ -90,7 +104,32 @@ export default function ResultsView({ data, activeLineIndex = -1 }) {
                                     className={`p-2 rounded transition-all duration-300 ${isActive ? 'bg-primary/10 font-medium' : 'hover:bg-primary/5'}`}
                                 >
                                     <span className="text-xs text-muted-foreground block mb-1 font-mono">{line.time}</span>
-                                    <p className="text-base leading-relaxed">{line.text}</p>
+                                    {line.words && line.words.length > 0 ? (
+                                        <p className="text-base leading-relaxed flex flex-wrap gap-x-1">
+                                            {line.words.map((w, wIdx) => {
+                                                const start = parseTime(w.start_time);
+                                                const end = parseTime(w.end_time);
+                                                // If currentTime is past the word's end, it's sung.
+                                                // If currentTime is between start and end, it's currently being sung.
+                                                const isSung = currentTime >= start;
+                                                const isCurrentWord = currentTime >= start && currentTime <= end;
+
+                                                return (
+                                                    <span
+                                                        key={wIdx}
+                                                        className={`transition-colors duration-150 ${isCurrentWord ? 'text-primary font-bold scale-110 inline-block drop-shadow-md'
+                                                                : isSung ? 'text-primary'
+                                                                    : 'text-muted-foreground'
+                                                            }`}
+                                                    >
+                                                        {w.word}
+                                                    </span>
+                                                )
+                                            })}
+                                        </p>
+                                    ) : (
+                                        <p className="text-base leading-relaxed">{line.text}</p>
+                                    )}
                                 </motion.div>
                             )
                         })}

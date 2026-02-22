@@ -65,7 +65,7 @@ export default function KaraokeSession({ data, audioFile }) {
         <div className="relative flex flex-col h-full">
             {/* Main content area padding bottom to avoid player overlap */}
             <div className="flex-1 pb-24 overflow-hidden">
-                <ResultsView data={data} activeLineIndex={activeLineIndex} />
+                <ResultsView data={data} activeLineIndex={activeLineIndex} currentTime={currentTime} />
             </div>
 
             <AudioPlayer src={audioSrc} onTimeUpdate={handleTimeUpdate} />

@@ -1,9 +1,15 @@
 from pydantic import BaseModel, Field
 from typing import List
 
+class WordTimestamp(BaseModel):
+    word: str = Field(description="The word itself")
+    start_time: str = Field(description="Start time of the word, e.g., '0:15.2'")
+    end_time: str = Field(description="End time of the word, e.g., '0:15.8'")
+
 class LyricLine(BaseModel):
-    time: str = Field(description="Timestamp of the lyric line, e.g., '0:15'")
-    text: str = Field(description="Text of the lyric line")
+    time: str = Field(description="Start timestamp of the lyric line, e.g., '0:15'")
+    text: str = Field(description="Full text of the lyric line")
+    words: List[WordTimestamp] = Field(description="List of words in the line with detailed timestamps", default_factory=list)
 
 class Metaphor(BaseModel):
     text: str = Field(description="The metaphor text")
