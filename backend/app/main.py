@@ -1,9 +1,12 @@
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from app.services.gemini_service import analyze_audio, AnalysisResponse
+from app.services.gemini_service import analyze_lyrics_semantics
+from app.services.transcription_service import transcribe_audio
+from app.models import AnalysisResponse
 import shutil
 import os
 import tempfile
+import json
 
 app = FastAPI(title="Sinfonia Backend")
 
@@ -28,14 +31,6 @@ async def analyze_endpoint(
     file: UploadFile = File(...),
     target_language: str = Form(...)
 ):
-    # Validate file size
-    # Note: UploadFile.file IS a SpooledTemporaryFile or similar. 
-    # file.size might not be available directly depending on implementation, 
-    # but we can check Content-Length header or read and check.
-    # Reading huge files into memory is bad.
-    # Better approach: check file.size attribute (if available via spooled file)
-    # or seek/tell.
-    
     # Check file size (20MB limit)
     MAX_FILE_SIZE = 20 * 1024 * 1024
     
@@ -53,10 +48,23 @@ async def analyze_endpoint(
             shutil.copyfileobj(file.file, tmp)
             tmp_path = tmp.name
         
-        # Call Gemini Service
-        result = analyze_audio(tmp_path, target_language)
+        # 1. Transcribe audio locally with faster-whisper for precise word timestamps
+        original_lyrics = transcribe_audio(tmp_path)
         
-        return result
+        # 2. Serialize lyrics to JSON to send to Gemini
+        lyrics_json_str = json.dumps([line.model_dump() for line in original_lyrics], indent=2)
+        
+        # 3. Get semantics and translation from Gemini (text-only, fast and precise)
+        semantic_result = analyze_lyrics_semantics(lyrics_json_str, target_language)
+        
+        # 4. Merge results into the final format
+        final_response = AnalysisResponse(
+            lyrics=original_lyrics,
+            translation=semantic_result.translation,
+            meaning=semantic_result.meaning
+        )
+        
+        return final_response
 
     except HTTPException:
         raise

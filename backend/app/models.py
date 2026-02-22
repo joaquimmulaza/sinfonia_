@@ -22,6 +22,10 @@ class Meaning(BaseModel):
     context: str = Field(description="Contextual background of the song")
     metaphors: List[Metaphor] = Field(description="List of metaphors found in the song")
 
+class SemanticAnalysisResponse(BaseModel):
+    translation: List[LyricLine] = Field(description="Translated lyrics with timestamps")
+    meaning: Meaning = Field(description="Detailed analysis of the song")
+
 class AnalysisResponse(BaseModel):
     lyrics: List[LyricLine] = Field(description="Original lyrics with timestamps")
     translation: List[LyricLine] = Field(description="Translated lyrics with timestamps")
