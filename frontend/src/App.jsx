@@ -4,22 +4,25 @@ import LoadingState from './components/LoadingState'
 import KaraokeSession from './components/KaraokeSession'
 import { analyzeMusic } from './services/api'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, AlertCircle } from 'lucide-react'
 
 function App() {
     const [view, setView] = useState('upload') // upload, loading, results
     const [data, setData] = useState(null)
     const [selectedFile, setSelectedFile] = useState(null)
+    const [error, setError] = useState(null)
 
     const handleAnalyze = async (payload) => {
+        setError(null)
         setSelectedFile(payload.file)
         setView('loading')
         try {
             const result = await analyzeMusic(payload)
             setData(result)
             setView('results')
-        } catch (error) {
-            console.error("Analysis failed:", error)
+        } catch (err) {
+            console.error("Analysis failed:", err)
+            setError(err.message || "Failed to analyze audio. Please try again.")
             setView('upload')
         }
     }
@@ -28,6 +31,7 @@ function App() {
         setView('upload')
         setData(null)
         setSelectedFile(null)
+        setError(null)
     }
 
     return (
@@ -57,7 +61,16 @@ function App() {
 
                 <div className="container max-w-screen-2xl py-6 flex-1 flex flex-col px-4 md:px-8">
                     {view === 'upload' && (
-                        <div className="flex-1 flex items-center justify-center animate-in fade-in zoom-in duration-500">
+                        <div className="flex-1 flex flex-col items-center justify-center gap-6 animate-in fade-in zoom-in duration-500 w-full">
+                            {error && (
+                                <div className="bg-destructive/10 text-destructive border border-destructive/20 w-full max-w-md p-4 rounded-xl flex items-start gap-3 shadow-sm animate-in fade-in slide-in-from-top-4">
+                                    <AlertCircle className="w-5 h-5 mt-0.5 shrink-0" />
+                                    <div className="flex flex-col gap-1">
+                                        <h4 className="font-semibold text-sm">Failed to Analyze Audio</h4>
+                                        <p className="text-sm opacity-90 leading-relaxed">{error}</p>
+                                    </div>
+                                </div>
+                            )}
                             <UploadView onAnalyze={handleAnalyze} />
                         </div>
                     )}
