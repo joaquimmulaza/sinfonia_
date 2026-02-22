@@ -7,13 +7,26 @@ export default function AudioPlayer({ src, onTimeUpdate }) {
     useEffect(() => {
         const audio = audioRef.current
         if (!audio) return
-
-        const handleTimeUpdate = () => {
+        let rafId
+        const tick = () => {
             onTimeUpdate(audio.currentTime)
+            rafId = requestAnimationFrame(tick)
         }
+        const startTick = () => { rafId = requestAnimationFrame(tick) }
+        const stopTick = () => cancelAnimationFrame(rafId)
 
-        audio.addEventListener('timeupdate', handleTimeUpdate)
-        return () => audio.removeEventListener('timeupdate', handleTimeUpdate)
+        audio.addEventListener('play', startTick)
+        audio.addEventListener('pause', stopTick)
+        audio.addEventListener('ended', stopTick)
+        // se já estiver a tocar:
+        if (!audio.paused) startTick()
+
+        return () => {
+            stopTick()
+            audio.removeEventListener('play', startTick)
+            audio.removeEventListener('pause', stopTick)
+            audio.removeEventListener('ended', stopTick)
+        }
     }, [onTimeUpdate])
 
     return (

@@ -23,14 +23,12 @@ export default function KaraokeSession({ data, audioFile }) {
         if (!data?.lyrics) return -1
         for (let i = data.lyrics.length - 1; i >= 0; i--) {
             const line = data.lyrics[i]
+            const lineStart = parseTime(line.time)
             const firstWord = line.words?.[0]
-            if (firstWord && currentTime >= parseTime(firstWord.start_time)) {
-                return i
-            }
-            // fallback para linhas sem words
-            if (!firstWord && currentTime >= parseTime(line.time)) {
-                return i
-            }
+            const activationTime = firstWord
+                ? Math.min(lineStart, parseTime(firstWord.start_time))
+                : lineStart
+            if (currentTime >= activationTime) return i
         }
         return -1
     }, [currentTime, data])
