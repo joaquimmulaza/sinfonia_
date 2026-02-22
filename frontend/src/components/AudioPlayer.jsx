@@ -4,21 +4,28 @@ import { motion } from 'framer-motion'
 export default function AudioPlayer({ src, onTimeUpdate }) {
     const audioRef = useRef(null)
 
+    // Keep a ref to the latest callback so the RAF loop never needs to re-run
+    // due to a new function reference being passed from the parent.
+    const callbackRef = useRef(onTimeUpdate)
+    useEffect(() => { callbackRef.current = onTimeUpdate }, [onTimeUpdate])
+
     useEffect(() => {
         const audio = audioRef.current
         if (!audio) return
         let rafId
+
         const tick = () => {
-            onTimeUpdate(audio.currentTime)
+            callbackRef.current(audio.currentTime)
             rafId = requestAnimationFrame(tick)
         }
+
         const startTick = () => { rafId = requestAnimationFrame(tick) }
         const stopTick = () => cancelAnimationFrame(rafId)
 
         audio.addEventListener('play', startTick)
         audio.addEventListener('pause', stopTick)
         audio.addEventListener('ended', stopTick)
-        // se já estiver a tocar:
+        // If already playing when component mounts:
         if (!audio.paused) startTick()
 
         return () => {
@@ -27,7 +34,7 @@ export default function AudioPlayer({ src, onTimeUpdate }) {
             audio.removeEventListener('pause', stopTick)
             audio.removeEventListener('ended', stopTick)
         }
-    }, [onTimeUpdate])
+    }, []) // ← empty: loop is set up ONCE and never torn down by re-renders
 
     return (
         <motion.div

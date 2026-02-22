@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react'
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import AudioPlayer from './AudioPlayer'
 import ResultsView from './ResultsView'
 import { parseTime } from '@/lib/utils'
@@ -17,27 +17,32 @@ export default function KaraokeSession({ data, audioFile }) {
         }
     }, [audioFile])
 
-    // Optimization: Calculate active index efficiently
-    // We want the line where the first word has started, or fallback to line timing
+    // Strict timestamp-based line activation:
+    // Use the first word's start_time exclusively (as provided by Gemini).
+    // Only fall back to line.time when the line has no word-level data.
+    // Never use Math.min or fixed offsets — they cause premature highlighting.
     const activeLineIndex = useMemo(() => {
         if (!data?.lyrics) return -1
         for (let i = data.lyrics.length - 1; i >= 0; i--) {
             const line = data.lyrics[i]
-            const lineStart = parseTime(line.time)
             const firstWord = line.words?.[0]
+            // Strictly prefer first word's start_time; fall back to line.time only if absent
             const activationTime = firstWord
-                ? Math.min(lineStart, parseTime(firstWord.start_time))
-                : lineStart
-            if (currentTime >= activationTime) return i
+                ? parseTime(firstWord.start_time)
+                : parseTime(line.time)
+            if (currentTime >= activationTime) {
+                // Uncomment below to debug sync in the console:
+                // console.log(`[SYNC] line=${i} | audio=${currentTime.toFixed(3)}s | activates@=${activationTime.toFixed(3)}s | raw="${firstWord?.start_time ?? line.time}"`)
+                return i
+            }
         }
         return -1
     }, [currentTime, data])
 
 
-    const handleTimeUpdate = (time) => {
-        // Batch updates if needed, but modern React handles this well
+    const handleTimeUpdate = useCallback((time) => {
         setCurrentTime(time)
-    }
+    }, [])
 
     if (!audioSrc) return <div>Loading Audio...</div>
 

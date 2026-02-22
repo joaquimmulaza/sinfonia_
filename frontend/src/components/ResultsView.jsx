@@ -97,7 +97,7 @@ export default function ResultsView({ data, activeLineIndex = -1, currentTime = 
                                         scale: isActive ? 1.05 : 1,
                                         color: isActive ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))'
                                     }}
-                                    transition={{ delay: idx * 0.05 }}
+                                    transition={{ duration: 0.2 }}
                                     className={`p-2 rounded transition-all duration-300 ${isActive ? 'bg-primary/10 font-medium' : 'hover:bg-primary/5'}`}
                                 >
                                     <span className="text-xs text-muted-foreground block mb-1 font-mono">{line.time}</span>
@@ -106,15 +106,15 @@ export default function ResultsView({ data, activeLineIndex = -1, currentTime = 
                                             {line.words.map((w, wIdx) => {
                                                 const start = parseTime(w.start_time);
                                                 const end = parseTime(w.end_time);
-                                                // If currentTime is past the word's end, it's sung.
-                                                // If currentTime is between start and end, it's currently being sung.
-                                                const isSung = currentTime >= start;
-                                                const isCurrentWord = currentTime >= start && currentTime <= end;
+                                                // 'isSung': word has been sung (past end_time)
+                                                // 'isCurrentWord': strictly within the active line AND within the word's time window
+                                                const isSung = currentTime > end;
+                                                const isCurrentWord = isActive && currentTime >= start && currentTime <= end;
 
                                                 return (
                                                     <span
                                                         key={wIdx}
-                                                        className={`transition-colors duration-150 ${isCurrentWord ? 'text-primary font-bold scale-110 inline-block drop-shadow-md'
+                                                        className={`transition-colors duration-150 ${isCurrentWord ? 'text-yellow-400 font-bold scale-110 inline-block drop-shadow-md'
                                                             : isSung ? 'text-primary'
                                                                 : 'text-muted-foreground'
                                                             }`}
@@ -152,7 +152,7 @@ export default function ResultsView({ data, activeLineIndex = -1, currentTime = 
                                         scale: isActive ? 1.05 : 1,
                                         color: isActive ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))'
                                     }}
-                                    transition={{ delay: idx * 0.05 }}
+                                    transition={{ duration: 0.2 }}
                                     className={`p-2 rounded transition-all duration-300 ${isActive ? 'bg-primary/10 font-medium' : 'hover:bg-primary/5'}`}
                                 >
                                     <span className="text-xs text-muted-foreground block mb-1 font-mono">{line.time}</span>

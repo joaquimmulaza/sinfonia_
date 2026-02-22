@@ -8,10 +8,31 @@ export function cn(...inputs) {
 export function parseTime(timeStr) {
     if (timeStr === null || timeStr === undefined) return 0
     const str = String(timeStr).trim()
-    // Se não tem ':', é segundos puros (número ou string)
-    if (!str.includes(':')) return parseFloat(str) || 0
-    const parts = str.split(':').map(Number)
-    if (parts.length === 2) return parts[0] * 60 + parts[1]
-    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2]
+    if (str === '') return 0
+
+    // No colon → pure seconds (integer or decimal), e.g. "83.4" or 83
+    if (!str.includes(':')) {
+        const n = parseFloat(str)
+        return isNaN(n) ? 0 : n
+    }
+
+    // "M:SS" or "M:SS.d" format (Gemini uses this: e.g. "0:59.0", "1:23.4")
+    const parts = str.split(':')
+    if (parts.length === 2) {
+        const mins = parseFloat(parts[0])
+        const secs = parseFloat(parts[1]) // handles "59.0", "23.45" correctly
+        return (isNaN(mins) ? 0 : mins) * 60 + (isNaN(secs) ? 0 : secs)
+    }
+
+    // "H:MM:SS" format
+    if (parts.length === 3) {
+        const hrs = parseFloat(parts[0])
+        const mins = parseFloat(parts[1])
+        const secs = parseFloat(parts[2])
+        return (isNaN(hrs) ? 0 : hrs) * 3600 +
+            (isNaN(mins) ? 0 : mins) * 60 +
+            (isNaN(secs) ? 0 : secs)
+    }
+
     return 0
 }
