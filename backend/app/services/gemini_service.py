@@ -31,13 +31,15 @@ def analyze_lyrics_semantics(audio_file_path: str, original_lyrics_json: str, ta
         
         Your tasks MUST ALL BE COMPLETED STRICTLY IN THIS TARGET LANGUAGE: **{target_language}**.
         
-        1. **Original Lyrics (`lyrics`)**: Listen to the audio and read the draft transcript. If the draft transcript is missing, incomplete, or mostly punctuation (like '.'), IGNORE IT completely. Instead, use the audio to transcribe the lyrics in their ORIGINAL language. Try your best to provide accurate word-level timestamps (`start_time` and `end_time` in M:SS.d format) and line `time` to maintain karaoke sync. If the draft transcript is perfectly fine, you can simply regurgitate it here, or refine it if you spot mistakes.
+        1. **Original Lyrics (`lyrics`)**: Listen to the audio and read the draft transcript. If the draft transcript is missing, incomplete, or mostly punctuation (like '.'), IGNORE IT completely. Instead, use the audio to transcribe the lyrics in their ORIGINAL language. Try your best to provide accurate word-level timestamps (`start_time` and `end_time` in M:SS.d format) and line `time`. 
+        CRITICAL: If the draft transcript is generally fine and acceptable, DO NOT OUTPUT the `lyrics` array at all. Omit it to save tokens!
         
         2. **Contextual Translation (`translation`)**: Translate the lyrics into {target_language}.
-           - CRITICAL: Do NOT perform literal, word-by-word translation. Read the entire song to understand the context, flow, and poetic meaning.
+           - CRITICAL: You MUST translate the ENTIRE song from start to finish. Do not stop early or abbreviate!
+           - Do NOT perform literal, word-by-word translation. Read the entire song to understand the context, flow, and poetic meaning.
            - Ensure the translated sentences connect logically across the JSON lines, just as they do in a real song.
            - The translated `text` for each line must correspond to the original line's `time`.
-           - Distribute the translated words into the `words` array reusing the original `start_time` and `end_time` as accurately as possible.
+           - CRITICAL: Do NOT generate the `words` array for the translation to save output space. Leave the `words` array empty (`[]`) for each translated line.
         
         3. **Semantic Analysis (`meaning` IN {target_language})**:
            - Identify the "vibe", predominant emotions, and the deep meaning of the song.
@@ -57,6 +59,7 @@ def analyze_lyrics_semantics(audio_file_path: str, original_lyrics_json: str, ta
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
                 response_schema=SemanticAnalysisResponse,
+                max_output_tokens=8192,
             )
         )
         
