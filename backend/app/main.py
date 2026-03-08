@@ -54,12 +54,14 @@ async def analyze_endpoint(
         # 2. Serialize lyrics to JSON to send to Gemini
         lyrics_json_str = json.dumps([line.model_dump() for line in original_lyrics], indent=2)
         
-        # 3. Get semantics and translation from Gemini (text-only, fast and precise)
-        semantic_result = analyze_lyrics_semantics(lyrics_json_str, target_language)
+        # 3. Get semantics and translation from Gemini (now uses audio + text fallback)
+        semantic_result = analyze_lyrics_semantics(tmp_path, lyrics_json_str, target_language)
         
         # 4. Merge results into the final format
+        final_lyrics = semantic_result.lyrics if semantic_result.lyrics else original_lyrics
+
         final_response = AnalysisResponse(
-            lyrics=original_lyrics,
+            lyrics=final_lyrics,
             translation=semantic_result.translation,
             meaning=semantic_result.meaning
         )

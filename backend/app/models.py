@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Optional
 
 class WordTimestamp(BaseModel):
     word: str = Field(description="The word itself")
@@ -23,6 +23,7 @@ class Meaning(BaseModel):
     metaphors: List[Metaphor] = Field(description="List of metaphors found in the song")
 
 class SemanticAnalysisResponse(BaseModel):
+    lyrics: Optional[List[LyricLine]] = Field(description="Original lyrics with timestamps, generated from audio if the draft transcript was poor", default=None)
     translation: List[LyricLine] = Field(description="Translated lyrics with timestamps")
     meaning: Meaning = Field(description="Detailed analysis of the song")
 
